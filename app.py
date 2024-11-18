@@ -1,10 +1,10 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return jsonify({"message": "Welcome to the Dating App!"})
+    return render_template('index.html')
 
 # Kullanıcı profili için global bir liste
 profiles = []

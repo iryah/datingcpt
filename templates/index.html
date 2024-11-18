@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dating App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .profile { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .profile h3 { margin: 0; }
+        .error, .success { color: white; padding: 5px; margin: 10px 0; border-radius: 5px; }
+        .error { background-color: #e74c3c; }
+        .success { background-color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dating App</h1>
+        <div class="error" id="error" style="display: none;"></div>
+        <div class="success" id="success" style="display: none;"></div>
+
+        <h2>Create Profile</h2>
+        <form id="createForm">
+            <input type="text" id="name" placeholder="Name" required>
+            <input type="number" id="age" placeholder="Age" required>
+            <button type="submit">Create</button>
+        </form>
+
+        <h2>Profiles</h2>
+        <div id="profiles"></div>
+    </div>
+
+    <script>
+        const apiBase = '/'; // API base URL
+        
+        // Fetch and display profiles
+        async function loadProfiles() {
+            const response = await fetch(apiBase + 'profiles');
+            const data = await response.json();
+            const profilesDiv = document.getElementById('profiles');
+            profilesDiv.innerHTML = '';
+
+            data.profiles.forEach((profile, index) => {
+                const profileDiv = document.createElement('div');
+                profileDiv.classList.add('profile');
+                profileDiv.innerHTML = `
+                    <h3>${profile.name} (${profile.age})</h3>
+                    <button onclick="deleteProfile(${index})">Delete</button>
+                `;
+                profilesDiv.appendChild(profileDiv);
+            });
+        }
+
+        // Create a new profile
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+
+            const response = await fetch(apiBase + 'profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, age }),
+            });
+
+            const result = await response.json();
+            if (response.status === 201) {
+                document.getElementById('success').textContent = result.message;
+                document.getElementById('success').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+                loadProfiles();
+            } else {
+                document.getElementById('error').textContent = result.error;
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('success').style.display = 'none';
+            }
+        });
+
+        // Delete a profile
+        async function deleteProfile(index) {
+            const response = await fetch(apiBase + 'profile/' + index, { method: 'DELETE' });
+            const result = await response.json();
+            if (response.status === 200) {
+                document.getElementById('success').textContent = result.message;
+                document.getElementById('success').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+                loadProfiles();
+            } else {
+                document.getElementById('error').textContent = result.error;
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('success').style.display = 'none';
+            }
+        }
+
+        // Load profiles on page load
+        loadProfiles();
+    </script>
+</body>
+</html>
